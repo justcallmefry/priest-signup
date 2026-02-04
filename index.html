@@ -46,8 +46,8 @@
     </div>
 
     <script>
-        // PASTE YOUR GOOGLE SCRIPT URL HERE
-        const API_URL = 'YOUR_DEPLOYED_WEB_APP_URL_GOES_HERE';
+        // *** UPDATED: YOUR GOOGLE SCRIPT URL ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycby0JRdwvLQaxftpzlBgA36PXCJKfGs3oCnuqF9L6ckd7VSPs3yE2Fw5ylGVqiYtXwT6/exec';
 
         let assignments = [];
         let namesList = [];
@@ -55,15 +55,20 @@
 
         // Fetch Data on Load
         async function loadData() {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            assignments = data.slots;
-            namesList = data.names;
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                assignments = data.slots;
+                namesList = data.names;
 
-            populateNames();
-            renderSlots();
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('slots-container').classList.remove('hidden');
+                populateNames();
+                renderSlots();
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('slots-container').classList.remove('hidden');
+            } catch (error) {
+                alert("Error loading data. Please check the spreadsheet URL.");
+                console.error(error);
+            }
         }
 
         // Group by Date and Render
@@ -112,6 +117,9 @@
         // Dropdown Logic
         function populateNames() {
             const select = document.getElementById('name-select');
+            // Clear existing options first (except placeholder)
+            select.innerHTML = '<option value="" disabled selected>Choose...</option>';
+            
             namesList.forEach(name => {
                 const option = document.createElement('option');
                 option.value = name;
@@ -144,8 +152,10 @@
             closeModal();
 
             // Send to Backend
+            // Added 'no-cors' to prevent browser security errors
             await fetch(API_URL, {
                 method: 'POST',
+                mode: 'no-cors', 
                 body: JSON.stringify({ row: currentRow, name: name })
             });
         }
